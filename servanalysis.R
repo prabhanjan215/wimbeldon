@@ -3,7 +3,7 @@
 shots<-read.csv("shots.csv",header=TRUE)
 
 # Loading the libraries needed for exploratory analysis
-install.packages("Rmisc")#use it if you dont have the package and to install it
+#install.packages("Rmisc")#use it if you dont have the package and to install it
 library(ggplot2)
 library(plyr)
 library(Rmisc)
@@ -54,7 +54,6 @@ innerline2 <- data.frame(x,y)
 cgplot <-function(d,a){
   ggplot(d,a)+
     xlim(-60,60) + ylim(-30,30) +
-    geom_point(aes(color=factor(serv_result)),size=5,alpha=3.5/4)+
     geom_line(data = outerline1,aes(x,y)) +
     geom_line(data = outerline2,aes(x,y)) +
     geom_line(data = outerline3,aes(x,y)) +
@@ -67,12 +66,9 @@ cgplot <-function(d,a){
     geom_line(data = line3, aes(x,y)) + 
     geom_hline(yintercept=0, linetype=3) +
     theme(panel.background = element_rect(fill = 'light green', colour = 'Black'))+
-    xlab("") +
-    ylab("") +
     theme(axis.title.x=element_text(size=14)) +
     theme(axis.title.y=element_text(size=14)) + 
     theme(plot.title=element_text(size=18)) +
-    labs(colour = "Result Of Serve")+
     theme(legend.title = element_text(size=14, face="bold"))+
     theme(legend.text = element_text(size = 12, face = "bold"))
 }
@@ -151,11 +147,25 @@ lhfvesa<-servs[(servs$sposX>0 & servs$sposY<0),]
 ############################################################################################################################################################################################
 
 ##plotting the datasets of both the players, which are performance of their servs from left and right halfs.
+extras<-
 
-p1<-cgplot(rhfsak,aes(eposX,eposY))+labs(title="Sakke33,Served From Right Half ")##righthalfplot
-p2<-cgplot(lhfsak,aes(eposX,eposY))+labs(title="Sakke33,Served From Left Half ")##lefthalfplot
-p3<-cgplot(rhfvesa,aes(eposX,eposY))+ggtitle("Vesavee,Served From Right Half ")##Righthalf polt
-p4<-cgplot(lhfvesa,aes(eposX,eposY))+labs(title="Vesavee,Served From Left Half ")##lefthalfplot
+p1<-cgplot(rhfsak,aes(eposX,eposY))+labs(title="Sakke33,Served From Right Half ")+
+  geom_point(aes(color=factor(serv_result)),size=5,alpha=3.5/4)+
+  xlab("") +
+  ylab("") +
+  labs(colour = "Result Of Serve")##righthalfplot
+p2<-cgplot(lhfsak,aes(eposX,eposY))+geom_point(aes(color=factor(serv_result)),size=5,alpha=3.5/4)+
+  xlab("") +
+  ylab("") +
+  labs(colour = "Result Of Serve")+labs(title="Sakke33,Served From Left Half ")##lefthalfplot
+p3<-cgplot(rhfvesa,aes(eposX,eposY))+geom_point(aes(color=factor(serv_result)),size=5,alpha=3.5/4)+
+  xlab("") +
+  ylab("") +
+  labs(colour = "Result Of Serve")+ggtitle("Vesavee,Served From Right Half ")##Righthalf polt
+p4<-cgplot(lhfvesa,aes(eposX,eposY))+geom_point(aes(color=factor(serv_result)),size=5,alpha=3.5/4)+
+  xlab("") +
+  ylab("") +
+  labs(colour = "Result Of Serve")+labs(title="Vesavee,Served From Left Half ")##lefthalfplot
 
 # Plots will be saved Automatically to your corresponding working directories
 png("~/ServAnalysisSakke33sam.png",width=900,height=485) 
