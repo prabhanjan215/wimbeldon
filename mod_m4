@@ -1,9 +1,8 @@
 ##read dataset from working directory
 #setwd("~/R/ATP/Data")
 shots <- read.csv("shots.csv")
-
+library(plyr)
 library(dplyr)
-
 #install.packages("aspace",dependencies = TRUE)
 library(aspace)
 
@@ -45,15 +44,14 @@ for (i in 1:length(ralliesplit)){
     
     m1 <- (spY-ep1Y)/(spX-ep1X)
     m2 <- (ep2Y-spY)/(ep2X-spX)
-    obj<- ((m1-m2)/(1+m1*m2))
-    modobj<-ifelse(obj<0,-(obj),obj)
-    theta <- atan_d(modobj) 
+    theta = atan_d(abs((m2-m1)/(1+m1*m2)))
     
+    type<-as.character(ralliesplit[[i]][j,"type"])
     call <- as.character(ralliesplit[[i]][j,"call"])
     lastshot <- as.character(ralliesplit[[i]][j,"lastShot"])
-    nextcall <- as.character(ralliesplit[[i]][j+1,"call"])
-    status <- ifelse(call %in% c("in","est") & (lastshot == "yes" || nextcall %in% c("out","net")),"Point","continued")
-    angleDF <- rbind(angleDF,(cbind(rallieid,shotid,player,ep1X,ep1Y,spX,spY,ep2X,ep2Y,m1,m2,theta,call,status)))
+    #nextcall <- as.character(ralliesplit[[i]][j+1,"call"])
+    status <- ifelse(call %in% c("in","est") & (lastshot == "yes"),"Point","continued")
+    angleDF <- rbind(angleDF,(cbind(rallieid,shotid,player,ep1X,ep1Y,spX,spY,ep2X,ep2Y,m1,m2,theta,call,type,status,lastshot)))
     
     
   }
@@ -79,6 +77,22 @@ angleDF$quadrant <- ifelse(pX>0 & pY>0, "I",ifelse(pX<0 & pY>0, "II", ifelse(pX<
 for(i in 1:nrow(angleDF)){
   if(angleDF[i,"quadrant"]=="II" || angleDF[i,"quadrant"]=="III"){ angleDF[i,"spX"] = - angleDF[i,"spX"];  angleDF[i,"spY"] = - angleDF[i,"spY"]; angleDF[i,"ep1X"] = - angleDF[i,"ep1X"];  angleDF[i,"ep1Y"] = - angleDF[i,"ep1Y"] ;angleDF[i,"ep2X"] = - angleDF[i,"ep2X"];  angleDF[i,"ep2Y"] = - angleDF[i,"ep2Y"]} 
 }
+
+#saving copy
+
+copy<-angleDF
+
+#plottingfor test
+
+cgplot(copy,aes(ep1X,ep1Y))+
+  geom_point(col="red", size=2) +
+  geom_point(aes(spX,spY),col="orange", size=5) + 
+  geom_point(aes(ep2X,ep2Y),col="yellow", size=2) +
+  geom_segment(data = copy,aes(x=ep1X, y=ep1Y, xend=spX, yend=spY)) + 
+  geom_segment(data = copy,aes(x=spX, y=spY, xend=ep2X, yend=ep2Y))+
+  labs(title="sakke theta analysis") + 
+  facet_grid( status ~ .)+xlab("")+ylab("")
+
 
 ##interploating all the points assuming that the player stand at one position of the court
 
@@ -210,8 +224,6 @@ install.packages("boot",dependencies=TRUE)
 library(boot)
 
 
-
-
 f <- function(d, i){
   d2 <- d[i,]
   return(cor(d2$write, d2$math))
@@ -227,32 +239,81 @@ bootcorr
 
 ##dragging all incoming ball lines to d=single line
 
-cgplot(sakkeintheta,aes(pep1X,pep1Y))+ylim(-40,40)+
+cgplot(main,aes(pep1X,pep1Y))+ylim(-40,40)+
   geom_point(col="red", size=2) +
-  geom_point(aes(pspX,pspY),col="orange", size=5) + 
-  geom_segment(data = sakkeintheta,aes(x=pep1X, y=pep1Y, xend=pspX, yend=pspY)) + 
-  facet_grid(status ~ .)+xlab("")+ylab("")+
+  geom_point(aes(pspX,pspY),col="orange", size=5)+
+  geom_segment(data = main,aes(x=11.115266, y=8.27347446, xend=pspX, yend=pspY)) + 
+ xlab("")+ylab("")+
   labs(title="sakke theta analysis")
 
-main<-sakkeintheta[,c(1:2,12:14,16,18,17,19,20,21)]
-summary(main$pep1X)
-datasplit <- split(main,main$rallieid)
+main<-sakkeintheta[,c(1:2,12:16,18,20,19,21,22,23)]
 
-x2<-7.755902
-y2<-3.02126795
+
+x2<-11.115266
+y2<-8.27347446
 x1<-39
 y1<-0
 
+(y1-y2)/(x1-x2)
 m1 <- (y2-y1)/(x2-x1)
 
-main$projtheta<-0
-newangleDF <- data.frame()
+main$dupprojtheta<-0
+
 
 for (i in 1:nrow(main)){
-    m2 <- (main$pep1Y[i]-y1)/(main$pep1X[i]-x1)
-    angle = atan(abs((m2-m1)/(1+m1*m2)))
-    main[i,"projtheta"]<-angle
+  m2 <- (main$pep1Y[i]-y1)/(main$pep1X[i]-x1)
+  angle = atan_d((m2-m1)/(1+m1*m2))
+  main[i,"dupprojtheta"]<-angle
 }
+
+
+
+#exp1
+
+px2<-11.115266
+py2<-8.27347446
+px1<-39
+py1<-0
+
+p12<-sqrt((px1 - px2)^2 + (py1 - py2)^2)
+
+for(i in 1:nrow(main)){
+  
+  px3<-main$pep1X[i]
+  py3<-main$pep1Y[i]
+  
+  p13<-sqrt((px1 - px3)^2 + (py1 - py3)^2)
+  
+  p23<-sqrt((px2 - px3)^2 + (py2 - py3)^2)
+  
+  angle=acos_d((p12^2+p13^2-p23^2)/(2*p12*p13))
+ 
+  main[i,"projtheta"]<-angle
+   
+}
+
+px1<-39
+py1<-0
+
+for(i in 1:nrow(main)){
+  px3<-main$pep1X[i]
+  py3<-main$pep1Y[i]
+  
+r<-sqrt((px1 - px3)^2 + (py1 - py3)^2)
+ ag<-asin_d((px3-py3)/sqrt((px1 - px3)^2 + (py1 - py3)^2))
+
+xc<-r*sin_d(ag)
+yc<-r*cos_d(ag)
+  
+main$exxc[i]<-xc
+main$exyc[i]<-yc
+}
+
+
+class(main$projtheta)
+main$projtheta<-replace(main$projtheta,is.na(main$projtheta),0)
+
+#(y1 – y2)x + (x2 – x1)y + (x1y2 – x2y1) = 0
 
 #new co ordinates
 
@@ -261,13 +322,80 @@ main$nep1Y<-0
 
 for(i in 1:nrow(main)){
   
-  main$nep1X[i]<-ifelse(main$ep1Y[i] > y2,((main$ep1X[i]*cos_d(main$projtheta[i])) - ((main$ep1Y[i]*sin_d(main$projtheta[i])),((main$ep1X[i]*cos_d(main$projtheta[i])) + ((main$ep1Y[i]*sin_d(main$projtheta[i])))
-  main$nep1Y[i]<-ifelse(main$ep1Y[i] > y2,((main$ep1X[i]*sin_d(main$projtheta[i])) + ((main$ep1Y[i]*cos_d(main$projtheta[i])),-(main$ep1X[i]*sin_d(main$projtheta[i]) + (main$ep1Y[i]*cos_d(main$projtheta[i]))
+  a<-main$pep1X[i]
+  b<-main$pep1Y[i]
+  d<-main$projtheta[i]
+  
+  main$nep1X[i]<-(a*cos_d(d)+b*sin_d(d))
+  main$nep1Y[i]<-(-a*sin_d(d)+b*cos_d(d))
 }
+
+
+
+
+cgplot(main,aes(exxc,exyc))+ylim(-40,40)+
+  geom_point(col="red", size=2) +
+  geom_point(aes(pspX,pspY),col="orange", size=5)+
+  geom_segment(data = main,aes(x=exxc, y=exyc, xend=pspX, yend=pspY)) + 
+  xlab("")+ylab("")+
+  labs(title="sakke theta analysis")
+
 
 
 atan_d(theta = 90)
 #new x and y
 
-v<-ifelse((main$ep1Y[1] > y2),(((main$ep1X[1]*cos_d(main$projtheta[1])) - ((main$ep1Y[1]*sin_d(main$projtheta[1]))),(((main$ep1X[1]*cos_d(main$projtheta[1])) + ((main$ep1Y[1]*sin_d(main$projtheta[1]))))
+main$nep1X[i]<-ifelse(main$ep1Y[i] > y2,(main$ep1X[i]*cos_d(main$projtheta[i]) - main$ep1Y[i]*sin_d(main$projtheta[i])),(main$ep1X[i]*cos_d(main$projtheta[i]) + main$ep1Y[i]*sin_d(main$projtheta[i])))
+main$nep1Y[i]<-ifelse(main$ep1Y[i] > y2,(main$ep1X[i]*sin_d(main$projtheta[i]) + main$ep1Y[i]*cos_d(main$projtheta[i])),(-(main$ep1X[i]*sin_d(main$projtheta[i])) + main$ep1Y[i]*cos_d(main$projtheta[i])))
 
+main$nep1X[i]<-ifelse(b>y2,(a*cos_d(d)-b*sin_d(d)),(a*cos_d(d)+b*sin_d(d)))
+main$nep1Y[i]<-ifelse(b>y2,(a*sin_d(d)+b*cos_d(d)),(-a*sin_d(d)+b*cos_d(d)))
+
+
+install.packages("boot",dependencies=TRUE)
+library(boot)
+c=boot(main$projtheta,mean,R=10000,trim=5)
+?boot
+
+
+# Bootstrap 95% CI for R-Squared
+library(boot)
+# function to obtain R-Squared from the data
+rsq <- function(formula, data, indices) {
+  d <- data[indices,] # allows boot to select sample
+  fit <- lm(formula, data=d)
+  return(summary(fit)$r.square)
+}
+# bootstrapping with 1000 replications
+results <- boot(main$theta,mean,R=1000)
+
+# view results
+results
+plot(results)
+
+# get 95% confidence interval
+boot.ci(results, type="bca")
+
+
+
+myMeanFun <- function(d, i) {
+  d2 <- d[i]
+  return(mean(d2, na.rm=T))
+}
+
+myBootFun <- function(d) {
+  boot(d, myMeanFun, R = 1000)
+}
+
+w<-lapply(main$theta, function(x) myBootFun(x) )
+
+
+summary(w)
+plot(w)
+
+f <- function(d, i){
+  d2 <- d[i,]
+  return(cor(d2$write, d2$math))
+}
+
+bootcorr <- boot(main, f, R=10000)
