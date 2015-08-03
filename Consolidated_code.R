@@ -4,6 +4,7 @@ setwd("~/")
 
 #install the package prior cleaning data
 #install.packages(c("Rcpp","ggplot2","plyr","dplyr","Rmisc","gridExtra"),dependencies=TRUE)#use it if you dont have the package and to install it
+#install.packages("aspace",dependencies = TRUE)
 
 ##cleaning the rawdata file of shots
 
@@ -288,6 +289,7 @@ p4<-cgplot(lhfvesa,aes(eposX,eposY))+geom_point(aes(color=factor(serv_result)),s
   labs(colour = "Result Of Serve")+labs(title="Vesavee,Served From Left Half ")##lefthalfplot
 
 # Plots will be saved Automatically to your corresponding working directories
+
 png("~/ServAnalysisSakke_full_view.png",width=900,height=485) 
 grid.arrange(p1,nrow=1,ncol=1)
 dev.off()
@@ -303,17 +305,18 @@ dev.off()
 ########################################################################################################################################
 ################### <<<< Metric 2 >>>> ########################
 
-#setwd("~/R/ATP/Data")
+#reading shots data file into R again as due to transpose of co ordinates, loading mother dataset again.
+
 shots <- read.csv("shots.csv")
 
 #Loading required libraries
 library(ggplot2)
-#install.packages("gridExtra")
-#library(gridExtra)
+library(gridExtra)
 library(dplyr)
 
 
-#Transposing start points
+#Transposing start points co ordinates.
+
 x <- shots$sposX 
 y <- shots$sposY
 
@@ -328,15 +331,18 @@ for(i in 1:nrow(shots)){
 shots$zone <- ifelse(shots$sposX <21,"0 to 21",ifelse(shots$sposX >21 & shots$sposX <= 30, "21 to 30", ifelse(shots$sposX >30 & shots$sposX  <=39, "30 to 39","Beyond 39")))
 
 #Finding last shots of each rally
+
 gpByRally <- group_by(shots, rallieid)
 lastShots <- summarize(gpByRally, max.pt = max(shotid))
 # Extracting complete shot details of winning shots
+
 winShots <- subset(shots,shots$shotid %in% lastShots$max.pt)
 # Subsetting out the winning shots that were not serves
+
 noServWins <- winShots[!(winShots$type %in% c("first_serve","second_serve")),]
 
 
-# Analysing only the subset where Sakke is serving
+## Analysing only the subset where Sakke is serving
 
 sakke33 <- subset(shots, shots$player == "sakke33")
 
@@ -358,8 +364,6 @@ NonServeWins <- na.omit(subset(nonserveGames, nonserveGames$shotid %in% noServWi
 NonServeLoss <- na.omit(subset(nonserveGames, nonserveGames$shotid %in% noServWins$shotid & nonserveGames$call %in% c("out","net")))
 
 #plotting data
-
-#setwd("~/R/ATP/Data/Plots")
 
 plot1 <- cgplot(ServeWins,aes(sposX,sposY)) +
   geom_point(aes(color=factor(type)),size=5,alpha=3/4)+
@@ -427,7 +431,7 @@ grid.arrange(xdensity, blankPlot, scatter, ydensity,
 dev.off()
 
 
-# Analysing only the subset where Vesavee is serving
+## Analysing only the subset where Vesavee is serving
 
 vesavee <- subset(shots, shots$player == "vesavee")
 
@@ -483,16 +487,14 @@ dev.off()
 
 ############################## <<<<< METRIC 3 >>>>> #######################################
 
+#Load the shots dataset
 
-#setwd("~/R/ATP/Data")
 shots <- read.csv("shots.csv",header=TRUE)
 unloadNamespace("dplyr")
 library(plyr)
 
 
-#Transposing points
-
-#Transposing start positions
+#Transposing start position co ordinates
 x <- shots$sposX 
 y <- shots$sposY
 
@@ -502,7 +504,7 @@ for(i in 1:nrow(shots)){
   if(shots[i,"quadrant"]=="II" || shots[i,"quadrant"]=="III"){ shots[i,"sposX"] = - shots[i,"sposX"];  shots[i,"sposY"] = - shots[i,"sposY"]} 
 }
 
-#Transposing end positions
+#Transposing end position co ordinates
 x <- shots$eposX 
 y <- shots$eposY
 
@@ -579,6 +581,8 @@ insuccessD <- subset(DistDF,DistDF$call == "in" & !(DistDF$shotid %in% infailure
 sakkeInSuccess <- subset(insuccessD,insuccessD$player == "sakke33")
 vesaveeInSuccess <- subset(insuccessD,insuccessD$player == "vesavee")
 
+#ploting the subsets using ggplot.
+
 plot1 <- cgplot(vesaveeInFailure,aes(endPosX,endPosY)) +
   geom_point(aes(39,0),color="red",shape = 13,size=5) +
   geom_point(aes(color=factor(speedZone)),size=4,alpha=3/4) +
@@ -612,6 +616,7 @@ plot4 <- cgplot(sakkeInSuccess,aes(endPosX,endPosY)) +
   theme(legend.position=c(0,1), legend.justification=c(0,1)) +
   labs(colour = "Speed Zone")
 
+#saving the plots automatically through png devive in working directory
 
 png("~/SakkeM3.png",width = 900, height = 485)
 grid.arrange(plot4,plot2,nrow=2,ncol=1, top = ("Sakke"))
@@ -626,13 +631,12 @@ dev.off()
 ################################ <<<<Metric 4>>> #############################################
 
 ##read dataset from working directory
-#setwd("~/R/ATP/Data")
+
 shots <- read.csv("shots.csv")
 library(dplyr)
-
-#install.packages("aspace",dependencies = TRUE)
 library(aspace)
 
+#
 
 gpByRally <- group_by(shots, rallieid)
 lastShots <- summarize(gpByRally, max.pt = max(shotid))
@@ -751,3 +755,9 @@ cgplot(vesavee,aes(pep1X,pep1Y))+ylim(-40,40)+
   labs(title="vesavee theta analysis") + 
   facet_grid(status ~ .)+xlab("")+ylab("")
 dev.off()
+
+###################################################################################################################################################################################################
+###################################################################################################################################################################################################
+
+################################ <<<<Metric 5>>> #############################################
+
