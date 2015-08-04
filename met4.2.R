@@ -1,12 +1,78 @@
 ##read dataset from working directory
 #setwd("~/R/ATP/Data")
+setwd("~")
 shots <- read.csv("shots.csv")
 library(ggplot2)
-library(plyr)
+require(plyr)
 library(dplyr)
 #install.packages("aspace",dependencies = TRUE)
 library(aspace)
 
+#plot function
+
+df <- data.frame()
+x <- c(-21,-21)
+y <- c(13.5,-13.5)
+line1 <- data.frame(x,y)
+
+x <- c(21,21)
+y <- c(13.5,-13.5)
+line2 <- data.frame(x,y)
+
+x <- c(21,-21)
+y <- c(0,0)
+line3 <- data.frame(x,y)
+
+x <- c(39,-39)
+y <- c(18,18)
+outerline1 <- data.frame(x,y)
+
+x <- c(-39,39)
+y <- c(-18,-18)
+outerline2 <- data.frame(x,y)
+
+x <- c(-39,-39)
+y <- c(18,-18)
+outerline3 <- data.frame(x,y)
+
+x <- c(39,39)
+y <- c(18,-18)
+outerline4 <- data.frame(x,y)
+
+x <- c(39,-39)
+y <- c(13.5,13.5)
+innerline1 <- data.frame(x,y)
+
+x <- c(39,-39)
+y <- c(-13.5,-13.5)
+innerline2 <- data.frame(x,y)
+
+#function for plotting using ggplot
+
+cgplot <-function(d,a){
+  ggplot(d,a)+
+    xlim(-60,60) + ylim(-30,30) +
+    geom_line(data = outerline1,aes(x,y)) +
+    geom_line(data = outerline2,aes(x,y)) +
+    geom_line(data = outerline3,aes(x,y)) +
+    geom_line(data = outerline4,aes(x,y)) +
+    geom_line(data = innerline1,aes(x,y),size = 1) +
+    geom_line(data = innerline2,aes(x,y),size = 1) +
+    geom_vline(xintercept = 0, color = "Grey", size=1.4) + 
+    geom_line(data = line1, aes(x, y)) +
+    geom_line(data = line2, aes(x, y)) +
+    geom_line(data = line3, aes(x,y)) + 
+    geom_hline(yintercept=0, linetype=3) +
+    theme(panel.background = element_rect(fill = 'light green', colour = 'Black'))+
+    theme(axis.title.x=element_text(size=14)) +
+    theme(axis.title.y=element_text(size=14)) + 
+    theme(plot.title=element_text(size=18)) +
+    theme(legend.title = element_text(size=14, face="bold"))+
+    theme(legend.text = element_text(size = 12, face = "bold"))
+}
+
+
+#analysis
 
 gpByRally <- group_by(shots, rallieid)
 lastShots <- summarize(gpByRally, max.pt = max(shotid))
@@ -135,7 +201,6 @@ vesaveeintheta<-vesavee[vesavee$call %in% c("in","est"),]
 
 ##rotating the shots
 
-
 main<-sakkeintheta[,c(1:2,12:16,18,20,19,21,22,23)]
 
 px1<-39
@@ -177,74 +242,11 @@ for (i in 1: nrow(main)){
 
 #developing Gplots
 
-#plot function
-
-df <- data.frame()
-x <- c(-21,-21)
-y <- c(13.5,-13.5)
-line1 <- data.frame(x,y)
-
-x <- c(21,21)
-y <- c(13.5,-13.5)
-line2 <- data.frame(x,y)
-
-x <- c(21,-21)
-y <- c(0,0)
-line3 <- data.frame(x,y)
-
-x <- c(39,-39)
-y <- c(18,18)
-outerline1 <- data.frame(x,y)
-
-x <- c(-39,39)
-y <- c(-18,-18)
-outerline2 <- data.frame(x,y)
-
-x <- c(-39,-39)
-y <- c(18,-18)
-outerline3 <- data.frame(x,y)
-
-x <- c(39,39)
-y <- c(18,-18)
-outerline4 <- data.frame(x,y)
-
-x <- c(39,-39)
-y <- c(13.5,13.5)
-innerline1 <- data.frame(x,y)
-
-x <- c(39,-39)
-y <- c(-13.5,-13.5)
-innerline2 <- data.frame(x,y)
-
-#function for plotting using ggplot
-
-cgplot <-function(d,a){
-  ggplot(d,a)+
-    xlim(-60,60) + ylim(-30,30) +
-    geom_line(data = outerline1,aes(x,y)) +
-    geom_line(data = outerline2,aes(x,y)) +
-    geom_line(data = outerline3,aes(x,y)) +
-    geom_line(data = outerline4,aes(x,y)) +
-    geom_line(data = innerline1,aes(x,y),size = 1) +
-    geom_line(data = innerline2,aes(x,y),size = 1) +
-    geom_vline(xintercept = 0, color = "Grey", size=1.4) + 
-    geom_line(data = line1, aes(x, y)) +
-    geom_line(data = line2, aes(x, y)) +
-    geom_line(data = line3, aes(x,y)) + 
-    geom_hline(yintercept=0, linetype=3) +
-    theme(panel.background = element_rect(fill = 'light green', colour = 'Black'))+
-    theme(axis.title.x=element_text(size=14)) +
-    theme(axis.title.y=element_text(size=14)) + 
-    theme(plot.title=element_text(size=18)) +
-    theme(legend.title = element_text(size=14, face="bold"))+
-    theme(legend.text = element_text(size = 12, face = "bold"))
-}
-
 #plotting using the function cgplot
 
 png("~/sakke_theta_analysis.png",width=900,height=485)
-cgplot(main,aes(nep1X,nep1Y))+ylim(-40,40)+
-  geom_point(col="red", size=5)+
+cgplot(main,aes(nep1X,nep1Y))+
+  geom_point(col="red", size=4)+
   geom_point(aes(pspX,pspY),col="orange", size=5) + 
   geom_point(aes(nep2X,nep2Y),col="yellow", size=3) +
   geom_segment(data = main,aes(x=nep1X, y=nep1Y, xend=pspX, yend=pspY)) + 
@@ -296,8 +298,8 @@ for (i in 1: nrow(main)){
 
 #plotting using the function cgplot
 png("~/vesavee_theta_analysis.png",width=900,height=485)
-cgplot(main,aes(nep1X,nep1Y))+ylim(-40,40)+
-  geom_point(col="red", size=5) +
+cgplot(main,aes(nep1X,nep1Y))+
+  geom_point(col="red", size=4) +
   geom_point(aes(pspX,pspY),col="orange", size=5) + 
   geom_point(aes(nep2X,nep2Y),col="yellow", size=3) +
   geom_segment(data = main,aes(x=nep1X, y=nep1Y, xend=pspX, yend=pspY)) + 
@@ -309,22 +311,158 @@ dev.off()
 
 ###bootstrapping
 
-#exp1:
-install.packages("UsingR",dependencies=TRUE)
+#subsetting the data for bootstrapping
+
+sakkepoint<-sakkeintheta[sakkeintheta$status == "Point",]
+sakpointsl<-sakkepoint[sakkepoint$type == "stroke_left",]
+sakpointsr<-sakkepoint[sakkepoint$type == "stroke_right",]
+
+sakkenopoint<-sakkeintheta[sakkeintheta$status == "continued",]
+saknopointsl<-sakkenopoint[sakkenopoint$type == "stroke_left",]
+saknopointsr<-sakkenopoint[sakkenopoint$type == "stroke_right",]
+
+
+vesaveepoint<-vesaveeintheta[vesaveeintheta$status == "Point",]
+vesapointsl<-vesaveepoint[vesaveepoint$type == "stroke_left",]
+vesapointsr<-vesaveepoint[vesaveepoint$type == "stroke_right",]
+
+vesaveenopoint<-vesaveeintheta[vesaveeintheta$status == "continued",]
+vesanopointsl<-vesaveenopoint[vesaveenopoint$type == "stroke_left",]
+vesanopointsr<-vesaveenopoint[vesaveenopoint$type == "stroke_right",]
+
+
+#bootstrapping for sakpointsl
+#install.packages("UsingR",dependencies=TRUE)
 require(UsingR)
 
-y<-main$theta
+y<-sakpointsl$theta
 
 n<-length(y)
 
 b<-10000
 
 resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
-dim(resamples)
 resampleMean<-apply(resamples,1,mean)
-length(resampleMean)
-hist(resampleMean)
-sd(resampleMean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for sakpointsr
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-sakpointsr$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for saknopointsl
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-saknopointsl$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for saknopointsr
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-saknopointsr$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for vesapointsl
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-vesapointsl$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for vesapointsr
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-vesapointsr$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for vesanopointsl
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-vesanopointsl$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
+quantile(resampleMean, c(.025,.5,.975))
+
+ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
+
+#bootstrapping for vesanopointsr
+#install.packages("UsingR",dependencies=TRUE)
+require(UsingR)
+
+y<-vesanopointsr$theta
+
+n<-length(y)
+
+b<-10000
+
+resamples<-matrix(sample(y,n*b,replace=TRUE),b,n)
+resampleMean<-apply(resamples,1,mean)
+
 quantile(resampleMean, c(.025,.5,.975))
 
 ggplot(data.frame(resampleMean),aes(resampleMean))+geom_histogram(color="black",fill="lightblue",binwidth=0.05)
